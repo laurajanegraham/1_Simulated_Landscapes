@@ -89,7 +89,6 @@ def two_step_esmod(params, nRow, nCol):
  
 # create the parameters to create surfaces for based on how they were set up above
 param_set = pd.DataFrame(expandgrid(p, h, r, w))
-param_set = param_set.iloc[:1]
 param_set = param_set.rename(index=str, columns = {'Var1':'p', 'Var2':'h', 'Var3':'r', 'Var4':'w'})
 param_set['p'] = param_set['p']/10
 param_set['h'] = param_set['h']/10
@@ -103,13 +102,6 @@ es_mod_rec.to_csv('C:/Users/lg1u16/SCALEFORES/1_Simulated_Landscapes/results/es_
 es_mod_poll_agri = param_set.apply(two_step_esmod, args=(nRow, nCol), axis=1)
 es_mod_poll_agri = es_mod_poll_agri.rename(index=str, columns = {'p': 'p_val', 'h': 'h_val', 'r': 'rep', 'w': 'window_size', 'es1_mean': 'es1_mean', 'es1_total': 'es1_total', 'es1_var': 'es1_var', 'es2_mean': 'es2_mean', 'es2_total': 'es2_total', 'es2_var': 'es2_var'})
 es_mod_poll_agri.to_csv('C:/Users/lg1u16/SCALEFORES/1_Simulated_Landscapes/results/es_mod_poll_agri.csv', index=False)
-
-# Compares to known correct versions
-from pandas.util.testing import assert_frame_equal
-
-known_correct_rec = pd.read_csv(r"C:\Users\lg1u16\SCALEFORES\1_Simulated_Landscapes\results\known_correct\es_mod_rec_ROBIN.csv")
-to_compare = pd.read_csv('C:/Users/lg1u16/SCALEFORES/1_Simulated_Landscapes/results/es_mod_rec_ROBIN.csv')
-assert_frame_equal(to_compare, known_correct_rec)
 
 # get some example landscapes
 #param_set_sml = param_set.groupby(['p', 'h']).size().reset_index()
