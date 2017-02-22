@@ -60,7 +60,7 @@ def mpd_prop(nRow, nCol, h, p):
     
 # function to get binary classification from MPDM - put into df form
 def mpd_prop_df(nRow, nCol, p, h):
-        """Create a neutral landscape which has a specific spatial autocorrelation 
+    """Create a neutral landscape which has a specific spatial autocorrelation 
     and proportion. This outputs as a dataframe for plotting in R.
     
     Parameters
@@ -79,6 +79,7 @@ def mpd_prop_df(nRow, nCol, p, h):
     out: pd.DataFrame
         NLM with required features
     """
+    
     mpd_out = nlmpy.mpd(nRow, nCol, h)
     prop_out = nlmpy.classifyArray(mpd_out, [1 - p, p])
     out = pd.DataFrame(prop_out)
