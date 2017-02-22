@@ -44,20 +44,20 @@ def mpd_prop_df(p, h):
     return out;
 
 # function to bring together creating the landscape and moving window analysis
-def simple_esmod(params, nRow, nCol):
+def simple_esmod(params, uFunction, nRow, nCol, ex_args = None):
     p = params['p']
     h = params['h']
     w = int(params['w'])
     r = params['r']
     out = mpd_prop(nRow, nCol, h, p)
 
-    wdw = generic_filter(out, np.mean, w, mode='wrap')
+    wdw = generic_filter(out, uFunction, w, mode='wrap', extra_arguments = ex_args)
     # this is currently set to take the relationship as 1:1 (i.e. 10% natural cover = 10% ecosystem service)
     # will need to add in the relationship to create ES surface at a later date
     es_mean = np.mean(wdw)
     es_total = np.sum(wdw)
     es_var = np.var(wdw) # NB this is population variance, try to work out if this is right, if sample variance needed use ddof = 1
-    return pd.Series({'p_val': p, 'h_val': h, 'rep': r, 'window_size': w, 'es_mean': es_mean, 'es_total': es_total, 'es_var': es_var});
+    return pd.Series({'p_val': p, 'h_val': h, 'rep': r, 'window_size': w, 'function': uFunction, 'ex_args': ex_args, 'es_mean': es_mean, 'es_total': es_total, 'es_var': es_var});
 
 # function to bring together creating the landscape and moving window analysis in a two step approach (e.g. pollination as input to agri)
 def two_step_esmod(params, nRow, nCol):
@@ -86,7 +86,36 @@ def two_step_esmod(params, nRow, nCol):
     es2_var = np.var(wdw2) # NB this is population variance, try to work out if this is right, if sample variance needed use ddof = 1
     
     return pd.Series({'p_val': p, 'h_val': h, 'rep': r, 'window_size': w, 'es1_mean': es1_mean, 'es1_total': es1_total, 'es1_var': es1_var, 'es2_mean': es2_mean, 'es2_total': es2_total, 'es2_var': es2_var});
- 
+
+# create functions for exploring the impact of the shape of the relationship between LC proportion and ES output
+def lc_prop(values, lc):
+    out = int((values == lc).sum()) / values.size
+    return out
+
+def exp_func(values, lc, a):
+    """Calculate the ES value based on an exponential relationship between the 
+    mean LC value and the ES value. The returned value is scaled between 0 and 1.
+    
+    Parameters
+    ----------
+    values: array
+        The array to process
+    lc: int
+        The land cover number to calculate the proportion of
+    a: float
+        The slope of the exponential function - the larger a is, the steeper the slope 
+        a > 0 has exponential rise, a < 0 has exponential decline
+        
+    Returns
+    -------
+    es_value: float
+        This is the value of the ES based on the defined rules
+    """
+    lc_prop = int((values == lc).sum()) / values.size()
+    exp_value = np.exp(a*lc_prop)
+    es_value = (exp_value - np.exp(a*0)) / (np.exp(a*1) - np.exp(a*0))
+    return es_value
+
 # create the parameters to create surfaces for based on how they were set up above
 param_set = pd.DataFrame(expandgrid(p, h, r, w))
 param_set = param_set.rename(index=str, columns = {'Var1':'p', 'Var2':'h', 'Var3':'r', 'Var4':'w'})
