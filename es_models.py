@@ -9,16 +9,15 @@ sys.path.insert(0, 'SCALEFORES/1_Simulated_Landscapes')
 
 import nlmfunctions as nlm
 import pandas as pd
-import numpy as np
-import math
 
 # this section sets up all of the information about the NLM created
-nRow = 50 # Number of rows
-nCol = 50 # Number of columns
+nRow = 51 # Number of rows
+nCol = 51 # Number of columns
 p = range(1, 10, 1) # range of values of p (proportion of NLC)
 h = range(0, 11, 1) # range of values of h (spatial autocorrelation)
 r = range(100) # number of replicates per landscape type
 w = [3,5,9,15] # window sizes for moving window analysis
+sigma = [0.02, 0.03, 0.06, 0.12, 0.5, 0.75, 1]
 ex_keys = [{'lc':1, 'a': 0.0000001}, {'lc':1, 'a':1}, {'lc':1, 'a':5}, {'lc':1, 'a':50}, {'lc':1, 'a':-1}, {'lc':1, 'a':-5}, {'lc':1, 'a':-50}]
 
 # create the parameters to create surfaces for based on how they were set up above
@@ -43,13 +42,14 @@ es_mod_rec2 = es_mod_rec2.rename(index=str, columns = {'p': 'p_val', 'h': 'h_val
 es_mod_rec2.to_csv('C:/Users/lg1u16/SCALEFORES/1_Simulated_Landscapes/results/es_mod_rec_exp.csv', index=False)
 
 # experiment with applying a distance decay function 
-# create the weighting surface which will be included as an input to the function
-sigma = 0.03 # this controls the shape of the distance decay relationship - compare some values
-x, y = np.meshgrid(np.arange(nCol), np.arange(nRow))
-centre = ((math.floor(nRow/2)), math.floor(nCol/2))
-d = np.sqrt((x-centre[1])**2 + (y-centre[0])**2)
-w = np.exp(-d**2/2*sigma**2)
-w = w/np.sum(w)
+dd_param_set = pd.DataFrame(nlm.expandgrid(p, h, r, sigma))
+dd_param_set = dd_param_set.rename(index=str, columns = {'Var1':'p', 'Var2':'h', 'Var3':'r', 'Var4':'sigma'})
+dd_param_set['p'] = dd_param_set['p']/10
+dd_param_set['h'] = dd_param_set['h']/10
+
+es_mod_dd = dd_param_set.apply(nlm.dd_simple_esmod, args=(nRow, nCol), axis=1)
+es_mod_dd = es_mod_dd.rename(index=str, columns =  {'p': 'p_val', 'h': 'h_val', 'r': 'rep', 'sigma': 'sigma', 'es1_mean': 'es1_mean', 'es1_total': 'es1_total', 'es1_var': 'es1_var', 'es2_mean': 'es2_mean', 'es2_total': 'es2_total', 'es2_var': 'es2_var'})
+es_mod_dd.to_csv('C:/Users/lg1u16/SCALEFORES/1_Simulated_Landscapes/results/es_mod_dd.csv', index=False)
 
 # get some example landscapes
 #param_set_sml = param_set.groupby(['p', 'h']).size().reset_index()
