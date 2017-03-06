@@ -90,7 +90,7 @@ def mpd_prop_df(nRow, nCol, p, h):
     return out;
 
 # function to bring together creating the landscape and moving window analysis
-def simple_esmod(params, uFunction, nRow, nCol, ex_keys = None):
+def simple_esmod(params, uFunction, nRow, nCol):
     """Simplest ES model where the ES value is the value of the mean land cover 
     within a particular window. A function can be applied to this using the 
     uFunction argument.
@@ -113,14 +113,13 @@ def simple_esmod(params, uFunction, nRow, nCol, ex_keys = None):
     h = params['h']
     w = int(params['w'])
     r = params['r']
+    ex_keys = params['ex_keys']
+    
     out = mpd_prop(nRow, nCol, h, p)
     
-    if ex_keys == None:
-        wdw = generic_filter(out, uFunction, w, mode='wrap')
-    else:
-        wdw = generic_filter(out, uFunction, w, mode='wrap', extra_keywords = ex_keys)
-    # this is currently set to take the relationship as 1:1 (i.e. 10% natural cover = 10% ecosystem service)
-    # will need to add in the relationship to create ES surface at a later date
+    wdw = generic_filter(out, uFunction, w, mode='wrap', extra_keywords = ex_keys)
+    
+    # output values
     es_mean = np.mean(wdw)
     es_total = np.sum(wdw)
     es_var = np.var(wdw) # NB this is population variance, try to work out if this is right, if sample variance needed use ddof = 1
@@ -207,7 +206,7 @@ def exp_func(values, lc, a):
     es_value: float
         This is the value of the ES based on the defined rules  {0, 1}
     """
-    lc_prop = int((values == lc).sum()) / values.size()
+    lc_prop = int((values == lc).sum()) / values.size
     exp_value = np.exp(a*lc_prop)
     es_value = (exp_value - np.exp(a*0)) / (np.exp(a*1) - np.exp(a*0))
     return es_value
