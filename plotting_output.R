@@ -48,9 +48,9 @@ plot_output("es_mod_poll_agri", "es2_total")
 plot_output("es_mod_poll_agri", "es2_var")
 
 # example landscape plotting - takes ages
-es_mod_example <- read_csv("results/es_mod_example.csv")
-
+es_mod_example <- read_csv("es_mod_example.csv")
+es_mod_example$LC_type <- ifelse(es_mod_example$value ==0, "Agriculture", "Forest")
 # plot the landscapes and save to results folder
-p <- ggplot(data = es_mod_example, aes(x = x, y = y, colour = value)) + geom_tile() + facet_grid(h ~ p)
+p <- ggplot(data = es_mod_example, aes(x = x, y = y, fill = LC_type)) + geom_tile() + facet_grid(h ~ p) + scale_fill_manual(values = c("orange", "darkgreen"))
 save_plot("results/es_mod_example.png", p, base_height = 10)
 rm(es_mod_example)

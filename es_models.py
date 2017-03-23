@@ -52,12 +52,12 @@ es_mod_dd = es_mod_dd.rename(index=str, columns =  {'p': 'p_val', 'h': 'h_val', 
 es_mod_dd.to_csv('C:/Users/lg1u16/SCALEFORES/1_Simulated_Landscapes/results/es_mod_dd.csv', index=False)
 
 # get some example landscapes
-#param_set_sml = param_set.groupby(['p', 'h']).size().reset_index()
-#es_mod_example = pd.DataFrame()
-#for p in range(1, 10):
-#    p = p/10
-#    for h in range(0, 11):
-#        h = h/10
-#        es_mod_example = es_mod_example.append(mpd_prop_df(p, h))
-#
-#es_mod_example.to_csv('SCALEFORES/1_Simulated_Landscapes/es_mod_example.csv')
+param_set_sml = param_set.groupby(['p', 'h']).size().reset_index()
+es_mod_example = pd.DataFrame()
+p_range = [0.1, 0.5, 0.9]
+h_range = [0, 0.5, 0.9]
+for p in p_range:
+    for h in h_range:
+        es_mod_example = es_mod_example.append(mpd_prop_df(25, 25, p, h))
+
+es_mod_example.to_csv('SCALEFORES/1_Simulated_Landscapes/es_mod_example.csv')

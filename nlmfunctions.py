@@ -8,30 +8,10 @@ Created on Thu Jan  5 11:17:32 2017
 from nlmpy import nlmpy # for some reason my installation requires me to load it like this...
 import numpy as np
 import pandas as pd
-import itertools
 from scipy.ndimage.filters import generic_filter
-import math
 
 
 # SET UP FUNCTIONS #############################################################
-# function to replicate expand.grid from R
-def expandgrid(*itrs):
-    """Copy the R expandgrid function. Takes 2+ variables and outputs the unique 
-    combinations of these
-    
-    Parameters
-    ----------
-    *itrs: vectors
-        The variables to be included
-    
-    Returns
-    -------
-    expanded_grid: array
-        Each row is a unique combination of the supplied vectors
-    """
-    product = list(itertools.product(*itrs))    
-    expandedgrid = {'Var{}'.format(i+1):[x[i] for x in product] for i in range(len(itrs))}                                  
-    return expandedgrid
 
 # function to get binary classification from MPDM
 def mpd_prop(nRow, nCol, h, p):
@@ -89,39 +69,6 @@ def mpd_prop_df(nRow, nCol, p, h):
     out['p'] = p
     return out;
 
-# function to bring together creating the landscape and moving window analysis
-def simple_esmod(params, uFunction, nRow, nCol):
-    """Simplest ES model where the ES value is the value of the mean land cover 
-    within a particular window. A function can be applied to this using the 
-    uFunction argument.
-    
-    Parameters
-    ----------
-    params: pd.series
-        Values of each of the parameters (p, h, w - window size, r - replicate, 
-        and ex_keys - arguments to the user defined function)
-    uFunction: function
-        The function to be applied to calculate the ES value
-    nRow: int
-        Number of rows in the landscape
-    nCol: int
-        Number of columns in the landscape
-    """
-    p = params['p']
-    h = params['h']
-    w = int(params['w'])
-    r = params['r']
-    ex_keys = params['ex_keys']
-    
-    out = mpd_prop(nRow, nCol, h, p)
-    
-    wdw = generic_filter(out, uFunction, w, mode='wrap', extra_keywords = ex_keys)
-    
-    # output values
-    es_mean = np.mean(wdw)
-    es_total = np.sum(wdw)
-    es_var = np.var(wdw) # NB this is population variance, try to work out if this is right, if sample variance needed use ddof = 1
-    return pd.Series({'p_val': p, 'h_val': h, 'rep': r, 'window_size': w, 'function': uFunction, 'ex_keys': ex_keys, 'es_mean': es_mean, 'es_total': es_total, 'es_var': es_var});
 
 def dd_simple_esmod(params, nRow, nCol):
     """Simplest ES model where the ES value a distance weighting on the value of 
@@ -276,5 +223,76 @@ def dd_func(values, lc, wt):
     lc_one = (values == lc)*1
     es_value = (lc_one*wt).sum()
     return es_value
+       
+def simple_model(values, w):
+    lin = generic_filter(values, np.mean, 3, mode='wrap')
+    exp = (np.exp(lin*5) - np.exp(5*0)) / (np.exp(5*1) - np.exp(5*0))
+    negexp = (np.exp(lin*-5) - np.exp(-5*0)) / (np.exp(-5*1) - np.exp(-5*0))
+    shannon = np.nan_to_num(-((lin*np.log(lin))+((1-lin)*np.log((1-lin))))/np.log(2))
+    return {'window': w, 'linear': np.mean(lin), 'exp': np.mean(exp), 'negexp': np.mean(negexp), 'shannon': np.mean(shannon)}
+
+def apply_function(dat, fn):
+    """Apply a given function to each cell of a provided np.array. 
+    Any new functions to be investigated should be tested here. 
     
+    Parameters
+    ----------
+    dat: array
+        The array to process
+    fn: string
+        The name of the function to apply
+        
+    Returns
+    -------
+    out: array
+        Processed array where each cell has had the required function applied to it.
+    """
+    
+    if(fn == "linear"):
+        out = dat
+    elif(fn == "exp"):
+        out = (np.exp(dat*5) - np.exp(5*0)) / (np.exp(5*1) - np.exp(5*0))
+    elif(fn == "negexp"):
+        out = (np.exp(dat*-5) - np.exp(-5*0)) / (np.exp(-5*1) - np.exp(-5*0))
+    elif(fn == "shannon"):
+        out = np.nan_to_num(-((dat*np.log(dat))+((1-dat)*np.log((1-dat))))/np.log(2))
+        
+    return out
+
+def two_step_binary(ls_size, p, h, w1, w2, f1, f2, fp1_same = True, fp2_same = True):
+    # create the landscape based on the input parameters
+    ls = mpd_prop(ls_size, ls_size, h, p)
+    
+    # get the mean value of the 'desired' habitat type
+    w1_out = generic_filter(ls, np.mean, w1, mode='wrap')
+    if(fp1_same == True):
+        w1_out = w1_out * ls # this means focal patch type matters
+    
+    # apply the correct function
+    w1_out = apply_function(w1_out, f1)
+    
+    # get the mean value of the previous output
+    w2_out = generic_filter(w1_out, np.mean, w2, mode='wrap')
+    if(fp2_same == True):
+        w2_out = w2_out * ls
+    
+    w2_out = apply_function(w2_out, f2)
+    
+    # create output
+    return pd.Series({'ls_size': ls_size, 'p_val': p, 'h_val': h, 'w1': w1, 'w2': w2, 'f1': f1, 'f2': f2, 'fp1_same': fp1_same, 'fp2_same': fp2_same, 'es_mean': np.mean(w2_out), 'es_var': np.var(w2_out)})
+    
+def one_step_binary(ls_size, p, h, w1, f1, fp1_same = True):
+    # create the landscape based on the input parameters
+    ls = mpd_prop(ls_size, ls_size, h, p)
+    
+    # get the mean value of the 'desired' habitat type
+    w1_out = generic_filter(ls, np.mean, w1, mode='wrap')
+    if(fp1_same == True):
+        w1_out = w1_out * ls # this means focal patch type matters
+    
+    # apply the correct function
+    w1_out = apply_function(w1_out, f1)
+    
+    # create output
+    return pd.Series({'ls_size': ls_size, 'p_val': p, 'h_val': h, 'w1': w1, 'f1': f1, 'fp1_same': fp1_same, 'es_mean': np.mean(w1_out), 'es_var': np.var(w1_out)})
     
