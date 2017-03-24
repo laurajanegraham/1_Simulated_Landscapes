@@ -6,7 +6,7 @@ Created on Thu Mar 23 15:16:00 2017
 """
 import pandas as pd
 import os
-os.chdir('SCALEFORES/1_Simulated_Landscapes')
+#os.chdir('SCALEFORES/1_Simulated_Landscapes')
 
 import nlmfunctions as nlm
 
