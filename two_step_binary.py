@@ -6,7 +6,7 @@ Created on Thu Mar 23 15:16:00 2017
 """
 import pandas as pd
 import os
-#import sys
+import sys
 #sys.path.append("/home/lg1u16/1_Simulated_Landscapes")
 #os.chdir('/home/lg1u16/1_Simulated_Landscapes')
 
@@ -14,8 +14,7 @@ import nlmfunctions as nlm
 
 
 # gets the number of the job array - use this to select the line from the params file
-#job_no = os.getenv('PBS_ARRAY_INDEX') - 1
-job_no = 1
+job_no = sys.argv[0]
 
 params = pd.read_csv("two_step_binary/params.csv")
 
