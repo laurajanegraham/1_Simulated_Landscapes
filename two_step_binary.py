@@ -14,7 +14,8 @@ import nlmfunctions as nlm
 
 
 # gets the number of the job array - use this to select the line from the params file
-job_no = sys.argv[0]
+job_no = sys.argv[1]
+job_no = int(job_no)
 
 params = pd.read_csv("two_step_binary/params.csv")
 
