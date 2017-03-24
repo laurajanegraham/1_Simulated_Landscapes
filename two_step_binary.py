@@ -4,27 +4,30 @@ Created on Thu Mar 23 15:16:00 2017
 
 @author: lg1u16
 """
+import numpy as np
 import pandas as pd
 import os
-
-import sys
-
-
 import nlmfunctions as nlm
-
-
-# gets the number of the job array - use this to select the line from the params file
-job_no = sys.argv[1]
-job_no = int(job_no)
-
-params = pd.read_csv("two_step_binary/params.csv")
-
-params = params.ix[job_no]
-
-out = nlm.two_step_binary(50, params['p'], params['h'], params['w1'], params['w2'], params['f1'], params['f2'])
+import uuid
 
 if not os.path.exists('two_step_binary/results'):
 	os.makedirs('two_step_binary/results')
 
-out.to_csv('two_step_binary/results/output'+str(job_no)+'.csv', index=False)
+p_vals = h_vals = np.arange(0.1, 0.9, 0.1)
+w1_vals = w2_vals = [3, 9, 15]
+f1_vals = f2_vals = ["linear", "exp", "negexp"]
+
+# horrible horrible for loop. 
+for p in p_vals:
+    for h in h_vals:
+        for w1 in w1_vals:
+            for w2 in w2_vals:
+                for f1 in f1_vals:
+                    for f2 in f2_vals:
+                        out = nlm.two_step_binary(50, p, h, w1, w2, f1, f2)
+                        unique_filename = uuid.uuid4()
+                        out.to_csv('two_step_binary/results/output'+str(unique_filename)+'.csv', index=False)
+
+
+
 
