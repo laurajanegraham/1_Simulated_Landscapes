@@ -2,7 +2,7 @@
 
 #PBS -N tsb
 #PBS -l walltime=00:05:00
-#PBS -t 0-10
+#PBS -t 0-6561
 
 cd $PBS_O_WORKDIR
 
