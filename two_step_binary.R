@@ -23,7 +23,7 @@ for(w in unique(results$window_size)) {
   pdf(file=paste0("two_step_binary/plots/", wfile, ".pdf"),  
       width=10, 
       height=10)
-  print(wireframe(es_mean~h_val*p_val|func, zlab = list("ES", rot=90), drape = TRUE, data=results, col.regions = colorRampPalette(c("blue", "pink"))(100)))
+  print(wireframe(es_mean~h_val*p_val|func, zlab = list("ES", rot=90), drape = TRUE, data=res, col.regions = colorRampPalette(c("blue", "pink"))(100)))
   dev.off()
 }
 

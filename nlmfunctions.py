@@ -231,7 +231,7 @@ def simple_model(values, w):
     shannon = np.nan_to_num(-((lin*np.log(lin))+((1-lin)*np.log((1-lin))))/np.log(2))
     return {'window': w, 'linear': np.mean(lin), 'exp': np.mean(exp), 'negexp': np.mean(negexp), 'shannon': np.mean(shannon)}
 
-def apply_function(dat, fn):
+def apply_function(dat, fn, window_no, window_size):
     """Apply a given function to each cell of a provided np.array. 
     Any new functions to be investigated should be tested here. 
     
@@ -241,19 +241,25 @@ def apply_function(dat, fn):
         The array to process
     fn: string
         The name of the function to apply
+    window_no: int
+        Is this the first or second window (this affects the standardisation)
         
     Returns
     -------
     out: array
         Processed array where each cell has had the required function applied to it.
     """
+    if(window_no == 1):
+        max_val = 1
+    if(window_no == 2):
+        max_val = ((window_size**2 - 1)/(window_size**2))
     
     if(fn == "linear"):
-        out = dat
+        out = dat / max_val
     elif(fn == "exp"):
-        out = (np.exp(dat*5) - np.exp(5*0)) / (np.exp(5*1) - np.exp(5*0))
+        out = (np.exp(dat*5) - np.exp(5*0)) / (np.exp(5*max_val) - np.exp(5*0))
     elif(fn == "negexp"):
-        out = (np.exp(dat*-5) - np.exp(-5*0)) / (np.exp(-5*1) - np.exp(-5*0))
+        out = (np.exp(dat*-5) - np.exp(-5*0)) / (np.exp(-5*max_val) - np.exp(-5*0))
     elif(fn == "shannon"):
         out = np.nan_to_num(-((dat*np.log(dat))+((1-dat)*np.log((1-dat))))/np.log(2))
         
@@ -269,14 +275,14 @@ def two_step_binary(ls_size, p, h, w1, w2, f1, f2, fp1_same = True, fp2_same = T
         w1_out = w1_out * ls # this means focal patch type matters
     
     # apply the correct function
-    w1_out = apply_function(w1_out, f1)
+    w1_out = apply_function(w1_out, f1, 1, w1)
     
     # get the mean value of the previous output
     w2_out = generic_filter(w1_out, np.mean, w2, mode='wrap')
     if(fp2_same == True):
         w2_out = w2_out * (1 - ls)
     
-    w2_out = apply_function(w2_out, f2)
+    w2_out = apply_function(w2_out, f2, 2, w2)
     
     # create output
     return pd.DataFrame({'ls_size': ls_size, 'p_val': p, 'h_val': h, 'w1': w1, 'w2': w2, 'f1': f1, 'f2': f2, 'fp1_same': fp1_same, 'fp2_same': fp2_same, 'es_mean': np.mean(w2_out), 'es_var': np.var(w2_out)}, index=[0])
