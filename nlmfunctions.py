@@ -274,7 +274,7 @@ def two_step_binary(ls_size, p, h, w1, w2, f1, f2, fp1_same = True, fp2_same = T
     # get the mean value of the previous output
     w2_out = generic_filter(w1_out, np.mean, w2, mode='wrap')
     if(fp2_same == True):
-        w2_out = w2_out * ls
+        w2_out = w2_out * (1 - ls)
     
     w2_out = apply_function(w2_out, f2)
     
