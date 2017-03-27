@@ -7,7 +7,7 @@ library(lattice)
 
 if(!dir.exists("two_step_binary/plots")) dir.create("two_step_binary/plots")
 
-results <- ldply(list.files("two_step_binary/results/", full.names=TRUE), read.csv) %>%
+results <- ldply(list.files("two_step_binary/results/", pattern="output", full.names=TRUE), read.csv) %>%
   group_by(h_val, p_val, w1, w2, f1, f2) %>%
   summarise(es_mean_se = sd(es_mean)/sqrt(n()),
             es_mean = mean(es_mean),
