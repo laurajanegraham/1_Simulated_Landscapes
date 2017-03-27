@@ -16,20 +16,16 @@ results <- ldply(list.files("two_step_binary/results/", full.names=TRUE), read.c
   mutate(window_size = paste0("w1 = ", w1, ", w2 = ", w2),
          func = paste0("f1 = ", f1, ", f2 = ", f2))
 
-#for(w in unique(results$window_size)) {
-#  wfile = gsub(" = ", "_", w)
-#  wfile = gsub(", ", "_", wfile)
-#  res <- filter(results, window_size == w)
-#  png(filename=paste0("two_step_binary/plots/", wfile, ".png"), 
-#      type="cairo",
-#      units="in", 
-#      width=10, 
-#      height=10, 
-#      pointsize=12, 
-#      res=96)
-#  print(wireframe(es_mean~h_val*p_val|func, zlab = list("ES", rot=90), drape = TRUE, data=results, col.regions = colorRampPalette(c("blue", "pink"))(100)))
-#  dev.off()
-#}
+for(w in unique(results$window_size)) {
+  wfile = gsub(" = ", "_", w)
+  wfile = gsub(", ", "_", wfile)
+  res <- filter(results, window_size == w)
+  pdf(file=paste0("two_step_binary/plots/", wfile, ".pdf"),  
+      width=10, 
+      height=10)
+  print(wireframe(es_mean~h_val*p_val|func, zlab = list("ES", rot=90), drape = TRUE, data=results, col.regions = colorRampPalette(c("blue", "pink"))(100)))
+  dev.off()
+}
 
 fs <- list.files("two_step_binary/results/", full.names = TRUE)
 file.remove(fs)
