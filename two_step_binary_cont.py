@@ -30,5 +30,5 @@ for p in p_vals:
                         res = res.append(out, ignore_index=True)                           
                         
 unique_filename = uuid.uuid4()
-res.to_csv('two_step_binary/results/output'+str(unique_filename)+'.csv', index=False)
+res.to_csv('two_step_binary_cont/results/output'+str(unique_filename)+'.csv', index=False)
 
