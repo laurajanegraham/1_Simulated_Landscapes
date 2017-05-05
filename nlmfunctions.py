@@ -301,8 +301,28 @@ def one_step_binary(ls_size, p, h, w1, f1, fp1_same = True):
     
     # create output
     return pd.Series({'ls_size': ls_size, 'p_val': p, 'h_val': h, 'w1': w1, 'f1': f1, 'fp1_same': fp1_same, 'es_mean': np.mean(w1_out), 'es_var': np.var(w1_out)})
+  
+def two_step_binary_cont(ls_size, p, h1, h2, w1, w2, w3, fp1_same = True, fp2_same = True):
+    # note w1 is for the first stage, w2 is the scale at which the output of first
+    # stage is important, w3 is for the continuous ls
     
-
+    # at the moment this function doesn't allow for differing functions on the links
+    ls_binary = mpd_prop(ls_size, ls_size, h1, p)
+    ls_cont = mpd(ls_size, ls_size, h2)
+    
+    w1_out = generic_filter(ls_binary, np.mean, w1, mode='wrap')
+    if(fp1_same == True):
+        w1_out = w1_out * ls_binary
+        
+    w2_out = generic_filter(w1_out, np.mean, w2, mode='wrap')
+    if(fp2_same == True):
+        w2_out = w2_out * (1 - ls_binary)
+        
+    w3_out = generic_filter(ls_cont, np.var, w3, mode='wrap') # this is the context dependency 
+    
+    out = w2_out * (1 - w3_out) # in this instance, the more variable the continuous surface within the window, the less the effect of the pollinators
+    
+    return pd.Series({'ls_size': ls_size, 'p_val': p, 'h_val1': h1, 'h_val2': h2, 'w1': w1, 'fp1_same': fp1_same, 'w2': w2, 'fp2_same': fp2_same, 'w3': w3, 'es_mean': np.mean(out), 'es_var': np.var(out)})
 
 
 
