@@ -6,7 +6,6 @@
 
 cd $PBS_O_WORKDIR
 
-module load python
-module load numpy
+module load python/3.5.1
 
 python two_step_binary_cont.py

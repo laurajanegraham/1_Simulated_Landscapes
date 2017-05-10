@@ -25,7 +25,7 @@ results <- ldply(list.files("two_step_binary_cont/results/", pattern="output", f
 #   dev.off()
 # }
 
-fs <- list.files("two_step_binary/results/", full.names = TRUE)
+fs <- list.files("two_step_binary_cont/results/", full.names = TRUE)
 file.remove(fs)
-save(results, file="two_step_binary/results/results.rda")
+save(results, file="two_step_binary_cont/results/results.rda")
 
