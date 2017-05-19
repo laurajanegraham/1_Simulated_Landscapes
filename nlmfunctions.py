@@ -160,23 +160,52 @@ def two_step_esmod(params, nRow, nCol):
 
 # create functions for exploring the impact of the shape of the relationship between LC proportion and ES output
 def lc_prop(values, lc):
-    """Calculate the ES value based on a straight line relationship between the 
-    mean LC value and the ES value.
+    """Calculate the total proportion of a specified list of land covers.
     
     Parameters
     ----------
     values: array
         The array to process
-    lc: int
-        The land cover number to calculate the proportion of
+    lc: int, or list of ints
+        The land cover number(s) to calculate the proportion of
     
     Returns
     -------
-    es_value: float
-        This is the value of the ES based on the defined rules {0, 1}  
+    out: float
+        Proportion of all specified land covers within the values {0, 1}  
     """
-    out = int((values == lc).sum()) / values.size
+    out = np.in1d(values,lc).sum() / values.size
     return out
+
+def shannon(values, lc):
+    """Calculate the shannon evefor a specified list of land covers.
+    
+    Parameters
+    ----------
+    values: array
+        The array to process
+    lc: int, or list of ints
+        The land cover number(s) to calculate the proportion of
+    
+    Returns
+    -------
+    out: float
+        Shannon evenness of the specified land covers {0, 1}  
+    """
+    shannon = 0
+    
+    if values.sum() == 0:
+        H = 0
+    else:
+        for i in lc:
+            p = np.in1d(values,i).sum() / np.in1d(values, lc).sum()
+            if p == 0:
+                shannon = shannon + 0
+            else:
+                shannon = shannon + (p * np.log(p))
+        
+        H = -shannon/np.log(len(lc))
+    return H
 
 def exp_func(values, lc, a):
     """Calculate the ES value based on an exponential relationship between the 
@@ -324,6 +353,42 @@ def two_step_binary_cont(ls_size, p, h1, h2, w1, w2, w3, fp1_same = True, fp2_sa
     
     return pd.Series({'ls_size': ls_size, 'p_val': p, 'h_val1': h1, 'h_val2': h2, 'w1': w1, 'fp1_same': fp1_same, 'w2': w2, 'fp2_same': fp2_same, 'w3': w3, 'es_mean': np.mean(out), 'es_var': np.var(out)})
 
+def farmland_birds(ls_size, h, w1, w2, npp):
+    """Function to predict species richness of farmland bird indicator species using amount 
+    and heterogeneity of habitat at the appropriate scale. Currently the proportions for each 
+    landscape are fixed, only the spatial autocorrelation changes
+    
+    Parameters
+    ----------
+    ls_size: int
+        Side length of the landscape
+    h: float
+        spatial autocorrelation of the landscape
+    w1: int
+        size of the amount window
+    w2: int
+        size of the heterogeneity window
+    npp: float
+        level of npp for the landscape
+        
+    Returns
+    -------
+    out: array
+        Predicted species richness of farmland bird indicator species
+    """
+    
+    # create landscape with four land cover types 1-3 are habitat, 0 is not
+    ls = mpd(ls_size, ls_size, h)
+    ls = classifyArray(ls, [0.25, 0.25, 0.25, 0.25])
+    binary = (ls != 0)*1
+    # for each cell, calculate habitat amount within the window
+    ls_amount = generic_filter(ls, lc_prop, w1, mode='wrap', extra_keywords = {'lc':[1,2,3]})*binary
+    # for each cell, calculate the habitat heterogeneity within the window
+    ls_hetero = generic_filter(ls, shannon, w2, mode='wrap', extra_keywords = {'lc':[1,2,3]})
+    # multiply the amount*hetero*npp
+    out = ls_amount * ls_hetero * npp
+    return pd.Series({'ls_size': ls_size, 'h_val': h, 'w1': w1, 'w2': w2, 'npp': npp, 'es_mean': np.mean(out), 'es_var': np.var(out)})
+    
 
 
 
