@@ -353,7 +353,7 @@ def two_step_binary_cont(ls_size, p, h1, h2, w1, w2, w3, fp1_same = True, fp2_sa
     
     return pd.Series({'ls_size': ls_size, 'p_val': p, 'h_val1': h1, 'h_val2': h2, 'w1': w1, 'fp1_same': fp1_same, 'w2': w2, 'fp2_same': fp2_same, 'w3': w3, 'es_mean': np.mean(out), 'es_var': np.var(out)})
 
-def farmland_birds(ls_size, h, w1, w2, npp):
+def farmland_birds_sim(ls_size, h, w1, w2, npp):
     """Function to predict species richness of farmland bird indicator species using amount 
     and heterogeneity of habitat at the appropriate scale. Currently the proportions for each 
     landscape are fixed, only the spatial autocorrelation changes
@@ -389,7 +389,34 @@ def farmland_birds(ls_size, h, w1, w2, npp):
     out = ls_amount * ls_hetero * npp
     return pd.Series({'ls_size': ls_size, 'h_val': h, 'w1': w1, 'w2': w2, 'npp': npp, 'es_mean': np.mean(out), 'es_var': np.var(out)})
     
+    
+def get_cell_buffer(grid_dat, grid_ref, buffer_size):
+    """Function to extract a specified cell from an input grid and then create 
+    a square buffer of a fixed size around it. 
+    
+    Parameters
+    ----------
+    grid_dat: geopandas GeoDataFrame
+        Grid file for the study area
+    grid_ref: string
+        Grid reference required
+    buffer_size: int
+        Size of required buffer - will be ~ half the window size for analysis. 
+    
+    Returns
+    -------
+    cellb: geopandas GeoDataSeries
+        Selected grid cell with required buffer. 
+    """
+        
+    # select a single bng 10 km cell, add a buffer of (w-1)/2, where w = window size, 
+    # and clip the LCM raster by this cell
+    cell = grid_dat.query('TILE_NAME == "' + grid_ref + '"')
 
+    # this has been checked and creates expected area
+    cellb = cell.geometry.apply(lambda g: g.buffer(buffer_size, cap_style=3, join_style=2))
+    
+    return(cellb)
 
 
 

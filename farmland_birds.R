@@ -15,3 +15,16 @@ fs <- list.files("farmland_birds/results/", full.names = TRUE)
 file.remove(fs)
 save(results, file="farmland_birds/results/results.rda")
 
+
+# plots
+load("farmland_birds/results/results.rda")
+library(lattice)
+
+results <- mutate(results, window_size = paste0("window = ", w1))
+results$w1 <- factor(results$w1, levels=c("3", "9", "15"))
+pdf(file=paste0("farmland_birds/plots/npp_vs_config.pdf"),  
+    width=15, 
+    height=5)
+print(wireframe(es_mean~h_val*npp|w1, zlab = list("ES", rot=90), drape = TRUE, data=results, col.regions = colorRampPalette(c("blue", "pink"))(100)))
+dev.off()
+

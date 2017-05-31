@@ -23,7 +23,7 @@ res = pd.DataFrame()
 for h in h_vals:
     for w in w_vals:
         for npp in npp_vals:
-            out = nlm.farmland_birds(50, h, w, w, npp)
+            out = nlm.farmland_birds_sim(50, h, w, w, npp)
             res = res.append(out, ignore_index=True)                           
                         
 unique_filename = uuid.uuid4()
