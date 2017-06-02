@@ -174,7 +174,7 @@ def lc_prop(values, lc):
     out: float
         Proportion of all specified land covers within the values {0, 1}  
     """
-    out = np.in1d(values,lc).sum() / float(values.size)
+    out = np.in1d(values,lc).sum() / values.size
     return out
 
 def shannon(values, lc):
@@ -194,11 +194,11 @@ def shannon(values, lc):
     """
     shannon = 0
     
-    if values.sum() == 0:
+    if np.in1d(values, lc).sum() == 0:
         H = 0
     else:
         for i in lc:
-            p = np.in1d(values,i).sum() / float(np.in1d(values, lc).sum())
+            p = np.in1d(values,i).sum() / np.in1d(values, lc).sum()
             if p == 0:
                 shannon = shannon + 0
             else:
@@ -236,7 +236,7 @@ def dd_func(values, lc, wt):
     it's distance to the central cell. 
     
     Parameters
-    ----------
+    ----------x
     values: array
         The array to process
     lc: int
