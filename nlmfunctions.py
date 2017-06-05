@@ -174,7 +174,7 @@ def lc_prop(values, lc):
     out: float
         Proportion of all specified land covers within the values {0, 1}  
     """
-    out = np.in1d(values,lc).sum() / values.size
+    out = np.in1d(values,lc).sum(dtype='float') / values.size
     return out
 
 def shannon(values, lc):
@@ -194,11 +194,11 @@ def shannon(values, lc):
     """
     shannon = 0
     
-    if np.in1d(values, lc).sum() == 0:
+    if np.in1d(values, lc).sum(dtype='float') == 0:
         H = 0
     else:
         for i in lc:
-            p = np.in1d(values,i).sum() / np.in1d(values, lc).sum()
+            p = np.in1d(values,i).sum(dtype='float') / np.in1d(values, lc).sum(dtype='float')
             if p == 0:
                 shannon = shannon + 0
             else:
@@ -226,7 +226,7 @@ def exp_func(values, lc, a):
     es_value: float
         This is the value of the ES based on the defined rules  {0, 1}
     """
-    lc_prop = int((values == lc).sum()) / float(values.size)
+    lc_prop = int((values == lc).sum()) / values.size
     exp_value = np.exp(a*lc_prop)
     es_value = (exp_value - np.exp(a*0)) / (np.exp(a*1) - np.exp(a*0))
     return es_value
